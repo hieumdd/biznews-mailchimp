@@ -1,6 +1,6 @@
 from google.cloud import bigquery
 
-DATASET = "IP_CoffeeHR"
+DATASET = "MailChimp"
 
 client = bigquery.Client()
 
