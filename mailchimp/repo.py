@@ -3,9 +3,11 @@ import os
 import math
 import json
 import tarfile
+import itertools
 from uuid import uuid4
 
 import httpx
+from compose import compose
 import mailchimp_marketing as MailchimpMarketing
 
 client = MailchimpMarketing.Client()
@@ -23,25 +25,29 @@ def get_lists(method, parse_fn, offset=0):
     )
 
 
-def create_paginated_batch_operation(operation_id, path_fn, count_fn):
-    def _create(lists):
-        def create_batch(path, count: int):
-            pages = math.ceil(count / COUNT)
-            return [
-                {
-                    "method": METHOD,
-                    "path": path,
-                    "params": {
-                        "count": COUNT,
-                        "offset": i,
-                    },
-                }
-                for i in range(pages)
-            ]
+def create_page_batch(path, count: int):
+    pages = math.ceil(count / COUNT)
+    return [
+        {
+            "method": METHOD,
+            "path": path,
+            "params": {
+                "count": COUNT,
+                "offset": i,
+            },
+        }
+        for i in range(pages)
+    ]
 
+
+def create_paginated_batch_operation(operation_id, path_fn, count_fn):
+    def _create(responses):
+        lists = [(parse_fn(r), count_fn(r, lists)) for r in responses]
         operations = [
             i
-            for j in [create_batch(path_fn(item), count_fn(item)) for item in lists]
+            for j in [
+                create_page_batch(path_fn(item), count_fn(item, lists)) for item in lists
+            ]
             for i in j
         ]
 
@@ -85,7 +91,7 @@ def get_archive(url: str) -> str:
     return dirpath
 
 
-def read_extractions(dirpath: str):
+def read_extractions(parse_fn: Callable):
     def parse_response(path: str):
         with open(path, "r") as f:
             res = json.load(f)
@@ -93,14 +99,30 @@ def read_extractions(dirpath: str):
 
     def parse_data(response):
         if response["status_code"] != 200:
-            return []
+            return None
 
-        return (lambda x: x["members"])(json.loads(response["response"]))
+        return {
+            "operation_id": response["operation_id"],
+            "response": json.loads(response["response"]),
+        }
 
-    data = [
-        parse_data(i)
-        for j in [parse_response(f"{dirpath}/{path}") for path in os.listdir(dirpath)]
-        for i in j
-    ]
+    def _read(dirpath: str):
+        responses = [
+            parse_data(i)
+            for i in [
+                parse_response(f"{dirpath}/{path}") for path in os.listdir(dirpath)
+            ]
+        ]
 
-    return [i for j in data for i in j]
+        return [
+            (key, list(items))
+            for key, items in itertools.groupby(
+                [i for i in responses if i],
+                lambda x: x["operation_id"],
+            )
+        ]
+
+    return _read
+
+
+get_from_batch = compose(read_extractions, get_archive)

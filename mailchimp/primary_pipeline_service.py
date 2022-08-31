@@ -7,10 +7,11 @@ from mailchimp.repo import (
     create_paginated_batch_operation,
     create_batch_operation,
 )
+from mailchimp.operations import Operation
 from mailchimp.utils import round_float
 
 
-def pipeline_service(
+def primary_pipeline_service(
     method,
     parse_fn,
     batch_operation_options,
@@ -31,14 +32,14 @@ def pipeline_service(
     return _svc
 
 
-get_lists_service = pipeline_service(
+get_lists_service = primary_pipeline_service(
     client.lists.get_all_lists,
     lambda x: x["lists"],
     [
         create_paginated_batch_operation(
-            "members",
+            Operation.MEMBERS.value,
             lambda item: f"/lists/{item['id']}/members",
-            lambda item: item["stats"]["member_count"],
+            lambda item, _: item["stats"]["member_count"],
         )
     ],
     lambda rows: [
@@ -55,16 +56,16 @@ get_lists_service = pipeline_service(
     ],
 )
 
-get_campaigns_service = pipeline_service(
+get_campaigns_service = primary_pipeline_service(
     client.campaigns.list,
     lambda x: x["campaigns"],
     [
         create_batch_operation(
-            "open-details-1",
+            Operation.CAMPAIGN_OPEN_DETAILS_1.value,
             lambda item: f"/reports/{item['id']}/open-details",
         ),
         create_batch_operation(
-            "click-details-1",
+            Operation.CAMPAIGN_CLICK_DETAILS_1.value,
             lambda item: f"/reports/{item['id']}/click-details",
         ),
     ],

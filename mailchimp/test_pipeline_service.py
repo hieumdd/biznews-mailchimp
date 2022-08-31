@@ -1,11 +1,11 @@
 import pytest
 
-from mailchimp import pipeline_service
+from mailchimp import primary_pipeline_service
 
 
 @pytest.mark.parametrize(
     "service",
-    [pipeline_service.get_lists_service, pipeline_service.get_campaigns_service],
+    [primary_pipeline_service.get_lists_service, primary_pipeline_service.get_campaigns_service],
     ids=["get_lists", "get_campaigns"],
 )
 def test_pipeline_service(service):
