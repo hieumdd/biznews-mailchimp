@@ -61,8 +61,8 @@ get_campaigns_service = primary_pipeline_service(
     lambda x: x["campaigns"],
     [
         create_batch_operation(
-            Operation.CAMPAIGN_OPEN_DETAILS_1.value,
-            lambda item: f"/reports/{item['id']}/open-details",
+            Operation.CAMPAIGN_EMAIL_ACTIVITY_1.value,
+            lambda item: f"/reports/{item['id']}/email-activity",
         ),
         create_batch_operation(
             Operation.CAMPAIGN_CLICK_DETAILS_1.value,

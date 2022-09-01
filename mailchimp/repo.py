@@ -41,12 +41,12 @@ def create_page_batch(path, count: int):
 
 
 def create_paginated_batch_operation(operation_id, path_fn, count_fn):
-    def _create(responses):
-        lists = [(parse_fn(r), count_fn(r, lists)) for r in responses]
+    def _create(operation_data):
         operations = [
             i
             for j in [
-                create_page_batch(path_fn(item), count_fn(item, lists)) for item in lists
+                create_page_batch(path_fn(item), count_fn(item, operation_data))
+                for item in operation_data
             ]
             for i in j
         ]
