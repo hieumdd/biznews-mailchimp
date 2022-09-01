@@ -1,4 +1,4 @@
-from typing import Optional, Callable
+from typing import Callable, Any
 import os
 import math
 import json
@@ -25,7 +25,7 @@ def get_lists(method, parse_fn, offset=0):
     )
 
 
-def create_page_batch(path, count: int):
+def create_page_batch(path: str, count: int):
     pages = math.ceil(count / COUNT)
     return [
         {
@@ -40,10 +40,14 @@ def create_page_batch(path, count: int):
     ]
 
 
-def create_paginated_batch_operation(operation_id, path_fn, count_fn):
+def create_paginated_batch_operation(
+    operation_id: str,
+    path_fn: Callable[[Any], str],
+    count_fn: Callable[[Any, Any], int],
+):
     def _create(operation_data):
         operations = [
-            i
+            {**i, "operation_id": operation_id}
             for j in [
                 create_page_batch(path_fn(item), count_fn(item, operation_data))
                 for item in operation_data
@@ -51,33 +55,31 @@ def create_paginated_batch_operation(operation_id, path_fn, count_fn):
             for i in j
         ]
 
-        return client.batches.start(
-            {"operations": operations[:1], "operation_id": operation_id}
-        )
+        return client.batches.start({"operations": operations})
 
     return _create
 
 
-def create_batch_operation(operation_id, path_fn):
+def create_batch_operation(operation_id: str, path_fn: Callable[[Any], str]):
     def _create(lists):
         operations = [
             {
                 "method": METHOD,
                 "path": path_fn(item),
                 "params": {"count": 1},
+                "operation_id": operation_id,
             }
             for item in lists
         ]
 
-        return client.batches.start(
-            {"operations": operations[:1], "operation_id": operation_id}
-        )
+        return client.batches.start({"operations": operations})
 
     return _create
 
 
 def get_archive(url: str) -> str:
-    dirpath = f"tmp/{uuid4()}"
+    extract_path = "tmp" if os.getenv("PYTHON_ENV") == "dev" else "/tmp"
+    dirpath = f"{extract_path}/{uuid4()}"
     filepath = f"{dirpath}.tar.gz"
 
     res = httpx.get(url)
@@ -91,13 +93,17 @@ def get_archive(url: str) -> str:
     return dirpath
 
 
-def read_extractions(parse_fn: Callable):
+def read_extractions(dirpath: str):
     def parse_response(path: str):
         with open(path, "r") as f:
             res = json.load(f)
             return res
 
-    def parse_data(response):
+    def parse_data(responses):
+        if not responses:
+            return None
+
+        response = responses.pop()
         if response["status_code"] != 200:
             return None
 
@@ -106,23 +112,19 @@ def read_extractions(parse_fn: Callable):
             "response": json.loads(response["response"]),
         }
 
-    def _read(dirpath: str):
-        responses = [
-            parse_data(i)
-            for i in [
-                parse_response(f"{dirpath}/{path}") for path in os.listdir(dirpath)
-            ]
-        ]
+    responses = [
+        parse_data(i)
+        for i in [parse_response(f"{dirpath}/{path}") for path in os.listdir(dirpath)]
+    ]
 
-        return [
-            (key, list(items))
-            for key, items in itertools.groupby(
-                [i for i in responses if i],
-                lambda x: x["operation_id"],
-            )
-        ]
-
-    return _read
+    return [
+        (key, list(items))
+        for key, items in itertools.groupby(
+            [i for i in responses if i],
+            lambda x: x["operation_id"],
+        )
+        if key
+    ]
 
 
 get_from_batch = compose(read_extractions, get_archive)
