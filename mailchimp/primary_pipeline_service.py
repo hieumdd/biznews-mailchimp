@@ -8,7 +8,6 @@ from mailchimp.repo import (
     create_batch_operation,
 )
 from mailchimp.operations import Operation
-from mailchimp.utils import round_float
 
 
 def primary_pipeline_service(
@@ -80,10 +79,10 @@ get_campaigns_service = primary_pipeline_service(
             "report_summary": {
                 "opens": item["report_summary"].get("opens"),
                 "unique_opens": item["report_summary"].get("unique_opens"),
-                "open_rate": round_float(item["report_summary"].get("open_rate")),
+                "open_rate": item["report_summary"].get("open_rate"),
                 "clicks": item["report_summary"].get("clicks"),
                 "subscriber_clicks": item["report_summary"].get("subscriber_clicks"),
-                "click_rate": round_float(item["report_summary"].get("click_rate")),
+                "click_rate": item["report_summary"].get("click_rate"),
                 "ecommerce": {
                     "total_orders": item["report_summary"]["ecommerce"].get(
                         "total_orders"
@@ -117,10 +116,10 @@ get_campaigns_service = primary_pipeline_service(
             "fields": [
                 {"name": "opens", "type": "NUMERIC"},
                 {"name": "unique_opens", "type": "NUMERIC"},
-                {"name": "open_rate", "type": "NUMERIC"},
+                {"name": "open_rate", "type": "BIGNUMERIC"},
                 {"name": "clicks", "type": "NUMERIC"},
                 {"name": "subscriber_clicks", "type": "NUMERIC"},
-                {"name": "click_rate", "type": "NUMERIC"},
+                {"name": "click_rate", "type": "BIGNUMERIC"},
                 {
                     "name": "ecommerce",
                     "type": "RECORD",
