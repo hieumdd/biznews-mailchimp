@@ -25,8 +25,24 @@ class TestPrimary:
 
 
 class TestWebhook:
-    def test_service(self):
-        url = ""
+    @pytest.mark.parametrize(
+        "url",
+        [
+            "https://storage.googleapis.com/biznews-tmp/members.tar.gz",
+            "https://storage.googleapis.com/biznews-tmp/campaigns-email-activity-1.tar.gz",
+            "https://storage.googleapis.com/biznews-tmp/campaigns-email-activity-2.tar.gz",
+            "https://storage.googleapis.com/biznews-tmp/campaigns-click-details-1.tar.gz",
+            "https://storage.googleapis.com/biznews-tmp/campaigns-click-details-2.tar.gz",
+        ],
+        ids=[
+            operations.Operation.MEMBERS.value,
+            operations.Operation.CAMPAIGN_EMAIL_ACTIVITY_1.value,
+            operations.Operation.CAMPAIGN_EMAIL_ACTIVITY_2.value,
+            operations.Operation.CAMPAIGN_CLICK_DETAILS_1.value,
+            operations.Operation.CAMPAIGN_CLICK_DETAILS_2.value,
+        ],
+    )
+    def test_service(self, url):
         res = webhook_service.webhook_service(url)
         assert res
 

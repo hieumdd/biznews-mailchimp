@@ -12,9 +12,7 @@ def get_core_service(
     load_fn: Callable[[list[dict]], int],
 ):
     def _svc(responses):
-        responses
-        data = [i for j in [parse_fn(r) for r in responses] for i in j]
-        data
+        data = [i for j in [parse_fn(res["response"]) for res in responses] for i in j]
 
         return compose(
             load_fn,
@@ -29,7 +27,7 @@ def get_pagination_service(
     batch_operations: list[Callable[[list[dict]], Any]],
 ):
     def _svc(responses):
-        operation_data = [operation_fn(res) for res in responses]
+        operation_data = [operation_fn(res["response"]) for res in responses]
 
         return [operation(operation_data) for operation in batch_operations]
 
