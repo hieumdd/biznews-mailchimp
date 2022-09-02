@@ -1,4 +1,6 @@
 from typing import Callable, Any
+from datetime import datetime, timezone
+
 from compose import compose
 
 from db import bigquery
@@ -71,6 +73,11 @@ get_campaign_email_activity_1_service = get_pagination_service(
             Operation.CAMPAIGN_EMAIL_ACTIVITY_2.value,
             lambda item: f"/reports/{item[0]}/email-activity",
             lambda item, _: item[1],
+            {
+                "since": datetime.utcnow()
+                .replace(hour=0, minute=0, second=0, tzinfo=timezone.utc)
+                .isoformat(timespec="seconds")
+            },
         )
     ],
 )

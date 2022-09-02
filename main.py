@@ -33,4 +33,4 @@ def main(request: Request):
 
     print(response)
 
-    return {"result": response}
+    return {"response": response}

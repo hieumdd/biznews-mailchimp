@@ -1,3 +1,5 @@
+from datetime import datetime, timezone
+
 from compose import compose
 
 from db import bigquery
@@ -62,11 +64,16 @@ get_campaigns_service = primary_pipeline_service(
         create_batch_operation(
             Operation.CAMPAIGN_EMAIL_ACTIVITY_1.value,
             lambda item: f"/reports/{item['id']}/email-activity",
+            {
+                "since": datetime.utcnow()
+                .replace(hour=0, minute=0, second=0, tzinfo=timezone.utc)
+                .isoformat(timespec="seconds")
+            },
         ),
-        create_batch_operation(
-            Operation.CAMPAIGN_CLICK_DETAILS_1.value,
-            lambda item: f"/reports/{item['id']}/click-details",
-        ),
+        # create_batch_operation(
+        #     Operation.CAMPAIGN_CLICK_DETAILS_1.value,
+        #     lambda item: f"/reports/{item['id']}/click-details",
+        # ),
     ],
     lambda rows: [
         {

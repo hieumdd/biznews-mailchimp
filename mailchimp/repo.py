@@ -25,7 +25,7 @@ def get_lists(method, parse_fn, offset=0):
     )
 
 
-def create_page_batch(path: str, count: int):
+def create_page_batch(path: str, count: int, params: dict = {}):
     pages = math.ceil(count / COUNT)
     return [
         {
@@ -34,6 +34,7 @@ def create_page_batch(path: str, count: int):
             "params": {
                 "count": COUNT,
                 "offset": i,
+                **params,
             },
         }
         for i in range(pages)
@@ -44,12 +45,13 @@ def create_paginated_batch_operation(
     operation_id: str,
     path_fn: Callable[[Any], str],
     count_fn: Callable[[Any, Any], int],
+    params: dict = {},
 ):
     def _create(operation_data):
         operations = [
             {**i, "operation_id": operation_id}
             for j in [
-                create_page_batch(path_fn(item), count_fn(item, operation_data))
+                create_page_batch(path_fn(item), count_fn(item, operation_data), params)
                 for item in operation_data
             ]
             for i in j
@@ -60,13 +62,17 @@ def create_paginated_batch_operation(
     return _create
 
 
-def create_batch_operation(operation_id: str, path_fn: Callable[[Any], str]):
+def create_batch_operation(
+    operation_id: str,
+    path_fn: Callable[[Any], str],
+    params: dict = {},
+):
     def _create(lists):
         operations = [
             {
                 "method": METHOD,
                 "path": path_fn(item),
-                "params": {"count": 1},
+                "params": {"count": 1, **params},
                 "operation_id": operation_id,
             }
             for item in lists
