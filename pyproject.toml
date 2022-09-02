@@ -10,6 +10,7 @@ google-cloud-bigquery = "^3.3.2"
 httpx = "^0.23.0"
 compose = "^1.4.8"
 mailchimp-marketing = "^3.0.75"
+Flask = "^2.2.2"
 
 [tool.poetry.dev-dependencies]
 pytest = "^7.1.2"
