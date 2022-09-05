@@ -13,7 +13,7 @@ def query(query: str):
 def load(table: str, schema: list[dict]):
     def _load(rows: list[dict]) -> int:
         output_rows = (
-            client.load_table_from_json(
+            client.load_table_from_json( # type: ignore
                 rows,
                 f"{DATASET}.{table}",
                 job_config=bigquery.LoadJobConfig(

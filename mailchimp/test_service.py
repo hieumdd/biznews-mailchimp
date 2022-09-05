@@ -4,6 +4,7 @@ from mailchimp import (
     operations,
     repo,
     primary_pipeline_service,
+    export_pipeline_service,
     secondary_pipeline_service,
     webhook_service,
 )
@@ -100,3 +101,20 @@ class TestSecondary:
         responses = [response_fn()]
         res = service(responses)
         assert res
+
+
+class TestExport:
+    @pytest.mark.parametrize(
+        "service",
+        [
+            export_pipeline_service.get_campaign_click_details,
+            export_pipeline_service.get_campaign_open_details,
+        ],
+        ids=[
+            "CampaignClickDetails",
+            "CampaignOpenDetails",
+        ],
+    )
+    def test_service(self, service):
+        res = service('tmp/10543547/83277')
+        res

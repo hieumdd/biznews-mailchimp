@@ -2,9 +2,8 @@ from typing import Callable, Any
 import os
 import math
 import json
-import tarfile
+import zipfile
 import itertools
-from uuid import uuid4
 
 import httpx
 from compose import compose
@@ -23,6 +22,10 @@ def get_lists(method, parse_fn, offset=0):
     return (
         data if len(data) == 0 else data + get_lists(method, parse_fn, offset + COUNT)
     )
+
+
+def get_export_download_url(export_id: str):
+    return client.accountExport.get_account_exports(export_id).get("download_url")
 
 
 def create_page_batch(path: str, count: int, params: dict = {}):
@@ -85,18 +88,21 @@ def create_batch_operation(
 
 def get_archive(url: str) -> str:
     extract_path = "tmp" if os.getenv("PYTHON_ENV") == "dev" else "/tmp"
-    dirpath = f"{extract_path}/{uuid4()}"
-    filepath = f"{dirpath}.tar.gz"
 
     res = httpx.get(url)
 
-    with open(filepath, "wb") as f:
+    filepath = res.request.url.path.split("/").pop()
+    dirpath = f"{extract_path}/{filepath}"
+
+    with open(dirpath, "wb") as f:
         f.write(res.content)
 
-    with tarfile.open(filepath) as t:
-        t.extractall(dirpath)
+    with zipfile.ZipFile(dirpath) as z:
+        z.extractall(extract_path)
 
-    return dirpath
+    data_path = filepath.replace(".zip", "").split("-")
+
+    return os.path.join(extract_path, *data_path)
 
 
 def read_extractions(dirpath: str):
