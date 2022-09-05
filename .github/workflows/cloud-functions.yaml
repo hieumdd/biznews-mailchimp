@@ -65,7 +65,7 @@ jobs:
           --entry-point=main
           --region=us-central1
           --timeout=530
-          --memory=1024MB
+          --memory=2048MB
           --runtime=python39
           --trigger-http
           --no-user-output-enabled
