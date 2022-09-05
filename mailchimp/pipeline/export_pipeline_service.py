@@ -1,6 +1,5 @@
 from typing import Callable
 import os
-import csv
 
 import numpy as np
 import pandas as pd
@@ -16,21 +15,12 @@ def read_campaign_csv(
 ) -> list[dict]:
     filepath = os.path.join(data_path, filename)
 
-    # with open(filepath, "r") as f:
-    #     csv_reader = csv.DictReader(f)
-    #     data = [
-    #         {
-    #             **row,  # type: ignore
-    #             **metadata_fn(filename),
-    #         }
-    #         for row in csv_reader
-    #     ]
-
-    # return data
-
-    df = pd.read_csv(filepath)
-
-    data = df.fillna(value=np.nan).replace({np.nan: None}).to_dict("records")
+    data = (
+        pd.read_csv(filepath)
+        .fillna(value=np.nan)
+        .replace({np.nan: None})
+        .to_dict("records")
+    )
 
     return [
         {
@@ -45,8 +35,7 @@ def get_export_data(
     path_to_files: str,
     metadata_fn: Callable[[str], dict],
     transform_fn: Callable[[list[dict]], list[dict]],
-    table: str,
-    schema: list[dict],
+    load_fn: Callable[[list[dict]], str],
 ):
     def _get(path: str) -> int:
         data_path = os.path.join(path, path_to_files)
@@ -60,7 +49,7 @@ def get_export_data(
         )
 
         return compose(
-            bigquery.load(table, schema),
+            load_fn,
             transform_fn,
         )(data)
 
@@ -97,31 +86,33 @@ get_members = get_export_data(
         }
         for row in rows
     ],
-    "Export_Members",
-    [
-        {"name": "email_address", "type": "STRING"},
-        {"name": "first_name", "type": "STRING"},
-        {"name": "last_name", "type": "STRING"},
-        {"name": "status", "type": "STRING"},
-        {"name": "member_rating", "type": "NUMERIC"},
-        {"name": "optin_time", "type": "TIMESTAMP"},
-        {"name": "optin_ip", "type": "STRING"},
-        {"name": "confirm_time", "type": "TIMESTAMP"},
-        {"name": "confirm_ip", "type": "STRING"},
-        {"name": "latitude", "type": "STRING"},
-        {"name": "longitude", "type": "STRING"},
-        {"name": "gmtoff", "type": "STRING"},
-        {"name": "dstoff", "type": "STRING"},
-        {"name": "timezone", "type": "STRING"},
-        {"name": "cc", "type": "STRING"},
-        {"name": "region", "type": "STRING"},
-        {"name": "last_changed", "type": "TIMESTAMP"},
-        {"name": "leid", "type": "NUMERIC"},
-        {"name": "euid", "type": "STRING"},
-        {"name": "notes", "type": "STRING"},
-        {"name": "tags", "type": "STRING"},
-        {"name": "list_web_id", "type": "NUMERIC"},
-    ],
+    bigquery.load(
+        "Export_Members",
+        [
+            {"name": "email_address", "type": "STRING"},
+            {"name": "first_name", "type": "STRING"},
+            {"name": "last_name", "type": "STRING"},
+            {"name": "status", "type": "STRING"},
+            {"name": "member_rating", "type": "NUMERIC"},
+            {"name": "optin_time", "type": "TIMESTAMP"},
+            {"name": "optin_ip", "type": "STRING"},
+            {"name": "confirm_time", "type": "TIMESTAMP"},
+            {"name": "confirm_ip", "type": "STRING"},
+            {"name": "latitude", "type": "STRING"},
+            {"name": "longitude", "type": "STRING"},
+            {"name": "gmtoff", "type": "STRING"},
+            {"name": "dstoff", "type": "STRING"},
+            {"name": "timezone", "type": "STRING"},
+            {"name": "cc", "type": "STRING"},
+            {"name": "region", "type": "STRING"},
+            {"name": "last_changed", "type": "TIMESTAMP"},
+            {"name": "leid", "type": "NUMERIC"},
+            {"name": "euid", "type": "STRING"},
+            {"name": "notes", "type": "STRING"},
+            {"name": "tags", "type": "STRING"},
+            {"name": "list_web_id", "type": "NUMERIC"},
+        ],
+    ),
 )
 
 get_campaign_click_details = get_export_data(
@@ -136,13 +127,15 @@ get_campaign_click_details = get_export_data(
         }
         for row in rows
     ],
-    "Export_CampaignClickDetails",
-    [
-        {"name": "timestamp", "type": "TIMESTAMP"},
-        {"name": "email", "type": "STRING"},
-        {"name": "url", "type": "STRING"},
-        {"name": "campaign_web_id", "type": "NUMERIC"},
-    ],
+    bigquery.load(
+        "Export_CampaignClickDetails",
+        [
+            {"name": "timestamp", "type": "TIMESTAMP"},
+            {"name": "email", "type": "STRING"},
+            {"name": "url", "type": "STRING"},
+            {"name": "campaign_web_id", "type": "NUMERIC"},
+        ],
+    ),
 )
 
 get_campaign_open_details = get_export_data(
@@ -156,10 +149,12 @@ get_campaign_open_details = get_export_data(
         }
         for row in rows
     ],
-    "Export_CampaignOpenDetails",
-    [
-        {"name": "timestamp", "type": "TIMESTAMP"},
-        {"name": "email", "type": "STRING"},
-        {"name": "campaign_web_id", "type": "NUMERIC"},
-    ],
+    bigquery.load(
+        "Export_CampaignOpenDetails",
+        [
+            {"name": "timestamp", "type": "TIMESTAMP"},
+            {"name": "email", "type": "STRING"},
+            {"name": "campaign_web_id", "type": "NUMERIC"},
+        ],
+    ),
 )
