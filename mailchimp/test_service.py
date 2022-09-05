@@ -107,10 +107,12 @@ class TestExport:
     @pytest.mark.parametrize(
         "service",
         [
+            export_pipeline_service.get_members,
             export_pipeline_service.get_campaign_click_details,
             export_pipeline_service.get_campaign_open_details,
         ],
         ids=[
+            "Members",
             "CampaignClickDetails",
             "CampaignOpenDetails",
         ],
