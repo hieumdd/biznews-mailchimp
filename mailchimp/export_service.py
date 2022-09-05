@@ -14,10 +14,9 @@ def create_export_task(export_id: str):
 def export_service(export_id: str):
     download_url = repo.get_export_download_url(export_id)
 
-
     if download_url:
         extract_path = repo.get_archive(download_url)
-        
+
         response = [
             service(extract_path)
             for service in [
