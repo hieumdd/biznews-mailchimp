@@ -27,6 +27,7 @@ get_lists = primary_pipeline_service(
     lambda rows: [
         {
             "id": item.get("id"),
+            "web_id": item.get("web_id"),
             "name": item.get("name"),
         }
         for item in rows
@@ -35,6 +36,7 @@ get_lists = primary_pipeline_service(
         "Lists",
         [
             {"name": "id", "type": "STRING"},
+            {"name": "web_id", "type": "NUMERIC"},
             {"name": "name", "type": "STRING"},
         ],
     ),
