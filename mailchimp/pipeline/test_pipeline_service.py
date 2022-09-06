@@ -7,8 +7,8 @@ class TestPrimary:
     @pytest.mark.parametrize(
         "service",
         [
-            primary_pipeline_service.get_lists_service,
-            primary_pipeline_service.get_campaigns_service,
+            primary_pipeline_service.get_lists,
+            primary_pipeline_service.get_campaigns,
         ],
         ids=["lists", "campaigns"],
     )

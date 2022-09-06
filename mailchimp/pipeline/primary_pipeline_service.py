@@ -16,13 +16,12 @@ def primary_pipeline_service(
         return compose(
             load_fn,
             transform_fn,
-            repo.get_lists(method, parse_fn),
-        )()
+        )(repo.get_lists(method, parse_fn))
 
     return _svc
 
 
-get_lists_service = primary_pipeline_service(
+get_lists = primary_pipeline_service(
     repo.client.lists.get_all_lists,
     lambda x: x["lists"],
     lambda rows: [
@@ -41,7 +40,7 @@ get_lists_service = primary_pipeline_service(
     ),
 )
 
-get_campaigns_service = primary_pipeline_service(
+get_campaigns = primary_pipeline_service(
     repo.client.campaigns.list,
     lambda x: x["campaigns"],
     lambda rows: [

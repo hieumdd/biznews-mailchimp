@@ -6,8 +6,8 @@ def primary_service():
     results = [
         service()
         for service in [
-            primary_pipeline_service.get_lists_service,
-            primary_pipeline_service.get_campaigns_service,
+            primary_pipeline_service.get_lists,
+            primary_pipeline_service.get_campaigns,
         ]
     ]
 
