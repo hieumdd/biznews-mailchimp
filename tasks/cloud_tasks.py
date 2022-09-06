@@ -1,9 +1,11 @@
 from typing import Callable, Any
 import os
 import json
-import uuid
+from uuid import uuid4
+from datetime import datetime, timedelta
 
 from google.cloud import tasks_v2
+from google.protobuf import timestamp_pb2
 from google import auth
 
 
@@ -18,11 +20,15 @@ def create_tasks(
     with tasks_v2.CloudTasksClient() as client:
         task_path = (PROJECT_ID, "us-central1", queue)
         parent = client.queue_path(*task_path)
+
+        schedule_time = timestamp_pb2.Timestamp()
+        schedule_time.FromDatetime(datetime.utcnow() + timedelta(minutes=30))
+
         tasks = [
             {
                 "name": client.task_path(
                     *task_path,
-                    task=f"{name_fn(payload)}-{uuid.uuid4()}",
+                    task=f"{name_fn(payload)}-{uuid4()}",
                 ),
                 "http_request": {
                     "http_method": tasks_v2.HttpMethod.POST,
@@ -35,6 +41,7 @@ def create_tasks(
                     },
                     "body": json.dumps(payload).encode(),
                 },
+                "schedule_time": schedule_time,
             }
             for payload in payloads
         ]
