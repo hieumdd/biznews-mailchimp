@@ -1,6 +1,7 @@
 from typing import Callable, Optional
 import os
 import zipfile
+from datetime import datetime, timezone
 
 import httpx
 import mailchimp_marketing as MailchimpMarketing
@@ -26,7 +27,12 @@ def get_lists(
 
 def create_export() -> str:
     return client.accountExports.create_account_export(
-        {"include_stages": ["audiences", "campaigns", "reports"]}
+        {
+            "include_stages": ["audiences", "campaigns", "reports"],
+            "since_timestamp": datetime(2010, 1, 1)
+            .replace(tzinfo=timezone.utc)
+            .isoformat(timespec="seconds"),
+        }
     ).get("export_id")
 
 
