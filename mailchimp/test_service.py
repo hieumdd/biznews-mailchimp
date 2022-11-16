@@ -8,7 +8,7 @@ def test_primary_service():
 
 
 def test_export_service():
-    export_id = 4
+    export_id = 16
     res = export_service.export_service(export_id)
     print(res)
     assert res

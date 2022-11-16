@@ -25,7 +25,7 @@ def get_lists(
     )
 
 
-def create_export() -> str:
+def create_export() -> int:
     return client.accountExports.create_account_export(
         {
             "include_stages": ["audiences", "campaigns", "reports"],
@@ -36,7 +36,7 @@ def create_export() -> str:
     ).get("export_id")
 
 
-def get_export_download_url(export_id: str) -> Optional[str]:
+def get_export_download_url(export_id: int) -> Optional[str]:
     return client.accountExport.get_account_exports(export_id).get("download_url")
 
 
