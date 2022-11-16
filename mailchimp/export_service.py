@@ -3,7 +3,7 @@ from tasks import cloud_tasks
 from mailchimp import repo
 
 
-def create_export_task(export_id: str):
+def create_export_task(export_id: int):
     return cloud_tasks.create_tasks(
         "mailchimp-export",
         [{"export_id": export_id}],
@@ -11,7 +11,7 @@ def create_export_task(export_id: str):
     )
 
 
-def export_service(export_id: str):
+def export_service(export_id: int):
     download_url = repo.get_export_download_url(export_id)
 
     if download_url:
